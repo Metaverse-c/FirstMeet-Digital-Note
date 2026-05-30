@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FirstMeet Digital Note</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Fira Code', Consolas, monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .exit-btn {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            color: #666;
+            cursor: pointer;
+            z-index: 1000;
+            transition: color 0.3s;
+            user-select: none;
+        }
+
+        .exit-btn:hover {
+            color: #ff5f56;
+        }
+
+        .entry-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .entry-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .gift-btn {
+            padding: 20px 40px;
+            font-size: 18px;
+            font-family: inherit;
+            background: transparent;
+            border: 2px solid #0f0;
+            color: #0f0;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .gift-btn:hover {
+            background: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+        }
+
+        .main-content {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .main-content.visible {
+            display: block;
+        }
+
+        .terminal-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27ca40; }
+
+        .terminal-title {
+            margin-left: auto;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .terminal-body {
+            background: #252526;
+            padding: 25px 30px;
+            border-radius: 0 0 8px 8px;
+            min-height: 400px;
+        }
+
+        #typewriter {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background: #0f0;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .music-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #2d2d2d;
+            border: 2px solid #444;
+            color: #d4d4d4;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .music-btn:hover {
+            border-color: #0f0;
+            color: #0f0;
+        }
+
+        .music-btn.muted {
+            opacity: 0.5;
+        }
+
+        @media (max-width: 600px) {
+            .main-content {
+                padding: 50px 15px;
+                font-size: 14px;
+            }
+
+            .terminal-body {
+                padding: 20px 15px;
+                min-height: 350px;
+            }
+
+            .gift-btn {
+                padding: 15px 30px;
+                font-size: 16px;
+            }
+
+            .terminal-title {
+                display: none;
+            }
+
+            .music-control {
+                bottom: 15px;
+                right: 15px;
+            }
+
+            .music-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="exit-btn" id="exitBtn" title="退出">×</div>
+
+    <div class="entry-screen" id="entryScreen">
+        <button class="gift-btn" id="giftBtn">请查收来自理工男的见面礼 🎁</button>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title" id="terminalTitle">FirstMeet — zsh — 120×30</span>
+        </div>
+        <div class="terminal-body">
+            <span id="typewriter"></span><span class="cursor"></span>
+        </div>
+    </div>
+
+    <div class="music-control" id="musicControl">
+        <button class="music-btn" id="musicBtn">🔊</button>
+    </div>
+
+    <audio id="bgmAudio" loop preload="auto">
+        <source src="music/nastelbom-background-music-463062.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const entryScreen = document.getElementById('entryScreen');
+        const giftBtn = document.getElementById('giftBtn');
+        const mainContent = document.getElementById('mainContent');
+        const typewriter = document.getElementById('typewriter');
+        const musicControl = document.getElementById('musicControl');
+        const musicBtn = document.getElementById('musicBtn');
+        const bgmAudio = document.getElementById('bgmAudio');
+        const exitBtn = document.getElementById('exitBtn');
+        const terminalTitle = document.getElementById('terminalTitle');
+
+        let clickCount = 0;
+        let clickTimer = null;
+
+        const config = {
+            herName: '李白',
+            weather: '晴'
+        };
+
+        const letterContent = `你好 ${config.herName}，
+
+很高兴认识你。
+
+为了防止我紧张到忘词，
+或者为了掩盖我代码的 bug，
+我特意写了这个小页面。
+
+今天的天气是 ${config.weather}，
+但我希望我们的心情是 Sunny。
+
+如果聊得开心，记得给我点个星星⭐️；
+如果聊得尴尬，请当成是一次 Bug 修复过程。
+
+—— 来自那个写代码的男生
+—— 送给那个喜欢玩赖的女孩`;
+
+        giftBtn.addEventListener('click', () => {
+            entryScreen.classList.add('hidden');
+            setTimeout(() => {
+                mainContent.classList.add('visible');
+                musicControl.style.display = 'flex';
+                startTypewriter();
+                setTimeout(function() {
+                    bgmAudio.play().catch(function(error) {
+                        console.log('自动播放失败，需要用户交互:', error);
+                    });
+                    isPlaying = true;
+                    musicBtn.innerHTML = '&#x1F507;';
+                }, 1000);
+            }, 800);
+        });
+
+        exitBtn.addEventListener('click', () => {
+            document.body.innerHTML = '';
+            document.body.style.background = '#1e1e1e';
+        });
+
+        terminalTitle.addEventListener('click', () => {
+            clickCount++;
+            if (clickTimer) clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => {
+                clickCount = 0;
+            }, 1000);
+
+            if (clickCount >= 5) {
+                alert('其实我刚才一直在偷偷看你 😊');
+                clickCount = 0;
+            }
+        });
+
+        function startTypewriter() {
+            let index = 0;
+            const speed = 50;
+
+            function type() {
+                if (index < letterContent.length) {
+                    typewriter.textContent += letterContent.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        let isPlaying = false;
+
+        musicBtn.addEventListener('click', function() {
+            if (isPlaying) {
+                bgmAudio.pause();
+                musicBtn.innerHTML = '&#x1F50A;';
+            } else {
+                bgmAudio.play().catch(function(error) {
+                    console.log('音频播放失败:', error);
+                });
+                musicBtn.innerHTML = '&#x1F507;';
+            }
+            isPlaying = !isPlaying;
+        });
+    </script>
+</body>
+</html>
